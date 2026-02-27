@@ -1,0 +1,28 @@
+{
+  "name": "magento-mcp",
+  "version": "1.0.0",
+  "description": "Adobe Commerce Cloud (Magento 2) MCP — stdio JSON-RPC server for business-level administration",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "ts-node src/index.ts"
+  },
+  "keywords": [
+    "magento",
+    "adobe-commerce",
+    "mcp",
+    "stdio"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.27.1",
+    "uuid": "^10.0.0",
+    "zod": "^3.23.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.0",
+    "@types/uuid": "^10.0.0",
+    "typescript": "^5.5.0"
+  }
+}
