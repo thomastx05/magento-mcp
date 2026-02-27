@@ -61,7 +61,7 @@ An [MCP (Model Context Protocol)](https://modelcontextprotocol.io/) server for *
 ### Installation
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/magento-mcp.git
+git clone https://github.com/thomastx05/magento-mcp.git
 cd magento-mcp
 npm install
 npm run build
@@ -135,7 +135,7 @@ Qty: 3,805 | In Stock: Yes | Backorders: Enabled
 ```
 src/
   index.ts              # MCP server entry point (McpServer + StdioServerTransport)
-  config.ts             # Configuration & guardrail defaults
+  config/index.ts       # Configuration & guardrail defaults
   actions/              # Tool handlers (one file per domain)
     auth.ts
     catalog.ts
@@ -172,13 +172,14 @@ src/
 
 ## Configuration
 
-Guardrails and limits are configurable in `src/config.ts`:
+Guardrails and limits are configurable in `src/config/index.ts`:
 
 | Setting | Default | Description |
 |---------|---------|-------------|
-| `maxBulkSkus` | 500 | Max products per bulk update |
-| `maxCouponQty` | 1000 | Max coupons per generation |
-| `priceChangeThreshold` | 0.5 (50%) | Warning threshold for price changes |
+| `maxSkusPerBulkCommit` | 500 | Max products per bulk update |
+| `maxCouponQtyPerGeneration` | 1000 | Max coupons per generation |
+| `priceChangeThresholdPercent` | 50 | Warning threshold for price changes (%) |
+| `maxDiscountPercent` | 50 | Max percent discount without override |
 | `allowedCatalogUpdateFields` | name, description, status, visibility, ... | Whitelist for bulk catalog updates |
 
 ## Optional: Fastly CDN Integration
