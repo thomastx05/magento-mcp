@@ -169,11 +169,13 @@ export const CommitBulkPriceUpdateSchema = CommitPlanSchema;
 
 export const CmsSearchPagesSchema = z.object({
   query: z.string().optional(),
+  scope: StoreScopeSchema.optional(),
   ...PaginationSchema.shape,
 });
 
 export const CmsGetPageSchema = z.object({
   page_id: z.number().int(),
+  scope: StoreScopeSchema.optional(),
 });
 
 export const CmsPrepareBulkUpdatePagesSchema = z.object({
@@ -189,11 +191,13 @@ export const CmsCommitBulkUpdatePagesSchema = CommitPlanSchema;
 
 export const CmsSearchBlocksSchema = z.object({
   query: z.string().optional(),
+  scope: StoreScopeSchema.optional(),
   ...PaginationSchema.shape,
 });
 
 export const CmsGetBlockSchema = z.object({
   block_id: z.number().int(),
+  scope: StoreScopeSchema.optional(),
 });
 
 export const CmsPrepareBulkUpdateBlocksSchema = z.object({
@@ -238,6 +242,7 @@ export const SeoBulkUpdateMetaSchema = z.object({
 
 export const SeoRedirectChainsSchema = z.object({
   max_depth: z.number().int().min(1).max(10).optional().default(5),
+  scope: StoreScopeSchema.optional(),
 });
 
 // ── Diagnostics Schemas ─────────────────────────────────────────────────────

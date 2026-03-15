@@ -221,9 +221,11 @@ export function createSeoActions(
           pageSize: 1000,
         });
 
+        const storeCode = validated.scope?.store_view_code;
         const result = await client.get<{ items: Array<Record<string, unknown>> }>(
           '/V1/url-rewrite',
           searchParams,
+          storeCode,
         ).catch(() => ({ items: [] as Array<Record<string, unknown>> }));
 
         const rewrites = result.items || [];

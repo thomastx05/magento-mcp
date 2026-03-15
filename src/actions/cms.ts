@@ -48,7 +48,8 @@ export function createCmsActions(
           currentPage: validated.current_page,
         });
 
-        return await client.get('/V1/cmsPage/search', searchParams);
+        const storeCode = validated.scope?.store_view_code;
+        return await client.get('/V1/cmsPage/search', searchParams, storeCode);
       },
     },
 
@@ -61,7 +62,8 @@ export function createCmsActions(
       handler: async (params: Record<string, unknown>, context: ActionContext) => {
         const validated = CmsGetPageSchema.parse(params);
         const client = context.getClient();
-        return await client.get(`/V1/cmsPage/${validated.page_id}`);
+        const storeCode = validated.scope?.store_view_code;
+        return await client.get(`/V1/cmsPage/${validated.page_id}`, undefined, storeCode);
       },
     },
 
@@ -93,10 +95,18 @@ export function createCmsActions(
           return { page_id: p['id'], title: p['title'], changes: diff };
         });
 
+        // Store page identifiers so commit can include them in the PUT payload
+        // (required by Magento for pages whose identifier is reserved in config, e.g. CMS Home Page)
+        const pageIdentifiers: Record<number, string> = {};
+        for (const p of pages) {
+          pageIdentifiers[p['id'] as number] = String(p['identifier'] || '');
+        }
+
         const plan = planStore.create(
           'cms.commit_bulk_update_pages',
           {
             page_ids: pages.map((p: Record<string, unknown>) => p['id']),
+            page_identifiers: pageIdentifiers,
             updates: validated.updates,
             scope: validated.scope,
           },
@@ -130,17 +140,30 @@ export function createCmsActions(
           throw new Error('Plan not found or expired.');
         }
 
-        const payload = plan.payload as { page_ids: number[]; updates: Record<string, unknown> };
+        const payload = plan.payload as {
+          page_ids: number[];
+          page_identifiers?: Record<number, string>;
+          updates: Record<string, unknown>;
+          scope?: { store_view_code?: string };
+        };
         const client = context.getClient();
+        const storeCode = payload.scope?.store_view_code;
 
         let successCount = 0;
         const errors: Array<{ page_id: number; error: string }> = [];
 
         for (const pageId of payload.page_ids) {
           try {
+            // Include identifier in payload — required by Magento for pages whose
+            // identifier is reserved in config (e.g. CMS Home Page "home")
+            const identifier = payload.page_identifiers?.[pageId];
+            const pagePayload: Record<string, unknown> = { id: pageId, ...payload.updates };
+            if (identifier) {
+              pagePayload.identifier = identifier;
+            }
             await client.put(`/V1/cmsPage/${pageId}`, {
-              page: { id: pageId, ...payload.updates },
-            });
+              page: pagePayload,
+            }, storeCode);
             successCount++;
           } catch (err) {
             errors.push({ page_id: pageId, error: err instanceof Error ? err.message : String(err) });
@@ -179,7 +202,8 @@ export function createCmsActions(
           currentPage: validated.current_page,
         });
 
-        return await client.get('/V1/cmsBlock/search', searchParams);
+        const storeCode = validated.scope?.store_view_code;
+        return await client.get('/V1/cmsBlock/search', searchParams, storeCode);
       },
     },
 
@@ -192,7 +216,8 @@ export function createCmsActions(
       handler: async (params: Record<string, unknown>, context: ActionContext) => {
         const validated = CmsGetBlockSchema.parse(params);
         const client = context.getClient();
-        return await client.get(`/V1/cmsBlock/${validated.block_id}`);
+        const storeCode = validated.scope?.store_view_code;
+        return await client.get(`/V1/cmsBlock/${validated.block_id}`, undefined, storeCode);
       },
     },
 
@@ -222,10 +247,16 @@ export function createCmsActions(
           return { block_id: b['id'], title: b['title'], changes: diff };
         });
 
+        const blockIdentifiers: Record<number, string> = {};
+        for (const b of blocks) {
+          blockIdentifiers[b['id'] as number] = String(b['identifier'] || '');
+        }
+
         const plan = planStore.create(
           'cms.commit_bulk_update_blocks',
           {
             block_ids: blocks.map((b: Record<string, unknown>) => b['id']),
+            block_identifiers: blockIdentifiers,
             updates: validated.updates,
             scope: validated.scope,
           },
@@ -259,17 +290,28 @@ export function createCmsActions(
           throw new Error('Plan not found or expired.');
         }
 
-        const payload = plan.payload as { block_ids: number[]; updates: Record<string, unknown> };
+        const payload = plan.payload as {
+          block_ids: number[];
+          block_identifiers?: Record<number, string>;
+          updates: Record<string, unknown>;
+          scope?: { store_view_code?: string };
+        };
         const client = context.getClient();
+        const storeCode = payload.scope?.store_view_code;
 
         let successCount = 0;
         const errors: Array<{ block_id: number; error: string }> = [];
 
         for (const blockId of payload.block_ids) {
           try {
+            const identifier = payload.block_identifiers?.[blockId];
+            const blockPayload: Record<string, unknown> = { id: blockId, ...payload.updates };
+            if (identifier) {
+              blockPayload.identifier = identifier;
+            }
             await client.put(`/V1/cmsBlock/${blockId}`, {
-              block: { id: blockId, ...payload.updates },
-            });
+              block: blockPayload,
+            }, storeCode);
             successCount++;
           } catch (err) {
             errors.push({ block_id: blockId, error: err instanceof Error ? err.message : String(err) });
